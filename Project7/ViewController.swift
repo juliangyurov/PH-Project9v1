@@ -9,12 +9,14 @@ import UIKit
 
 class ViewController: UITableViewController {
     var petitions = [Petition]()
+    var filteredPetitions = [Petition]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         let urlString: String
         
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Filter", style: .plain, target: self, action: #selector(filterPetitions))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Credit", style: .plain, target: self, action: #selector(showCredit))
         
         if navigationController?.tabBarItem.tag == 0 {
@@ -56,25 +58,63 @@ class ViewController: UITableViewController {
         }
     }
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return petitions.count
+        if filteredPetitions.isEmpty{
+            return petitions.count
+        }else{
+            return filteredPetitions.count
+        }
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        let petition = petitions[indexPath.row]
-        cell.textLabel?.text = petition.title
-        cell.detailTextLabel?.text = petition.body
+        if filteredPetitions.isEmpty{
+            let petition = petitions[indexPath.row]
+            cell.textLabel?.text = petition.title
+            cell.detailTextLabel?.text = petition.body
+        }else{
+            let petition = filteredPetitions[indexPath.row]
+            cell.textLabel?.text = petition.title
+            cell.detailTextLabel?.text = petition.body
+        }
         return cell
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let vc = DetailViewController()
-        vc.detailItem = petitions[indexPath.row]
+        if filteredPetitions.isEmpty {
+            vc.detailItem = petitions[indexPath.row]
+        }else{
+            vc.detailItem = filteredPetitions[indexPath.row]
+        }
         navigationController?.pushViewController(vc, animated: true)
     }
     @objc func showCredit(){
         let ac = UIAlertController(title: "Credit", message: "The data comes from the\n\"We The People API\"\nof the Whitehouse.", preferredStyle: .alert)
         ac.addAction(UIAlertAction(title: "OK", style: .default))
         present(ac, animated: true)
+    }
+    @objc func filterPetitions() {
+        let ac = UIAlertController(title: "Search:", message: nil, preferredStyle: .alert)
+        ac.addTextField()
+        
+        let submitAction = UIAlertAction(title: "Submit", style: .default){
+            [weak self, weak ac] action in
+            guard let searchText = ac?.textFields?[0].text else { return }
+            self?.submit(searchText)
+        }
+        ac.addAction(submitAction)
+        present(ac, animated: true)
+    }
+    
+    func submit(_ searchText: String){
+        
+        filteredPetitions.removeAll(keepingCapacity: true)
+        
+        for item in petitions{
+            if item.title.contains(searchText) || item.body.contains(searchText){
+                filteredPetitions.append(item)
+            }
+        }
+        tableView.reloadData()
     }
 }
 
