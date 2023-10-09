@@ -10,18 +10,13 @@ import UIKit
 class ViewController: UITableViewController {
     var petitions = [Petition]()
     var filteredPetitions = [Petition]()
+    var urlAddress: String = ""
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Filter", style: .plain, target: self, action: #selector(filterPetitions))
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Credit", style: .plain, target: self, action: #selector(showCredit))
-        
-        performSelector(inBackground: #selector(fetchJSON), with: nil)
-        
-     }
-    
-    @objc func fetchJSON() {
         
         let urlString: String
 
@@ -32,8 +27,14 @@ class ViewController: UITableViewController {
             //urlString = "https://api.whitehouse.gov/v1/petitions.json?signatureCountFloor=10000&limit=100"
             urlString = "https://www.hackingwithswift.com/samples/petitions-2.json"
         }
+        urlAddress = urlString
         
-        if let url = URL(string: urlString){
+        performSelector(inBackground: #selector(fetchJSON), with: nil)
+        
+     }
+    
+    @objc func fetchJSON() {
+        if let url = URL(string: urlAddress){
             if let data = try? Data(contentsOf: url){
                 //Data fetched OK
                 //print("data.count=\(data.count)")
